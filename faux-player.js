@@ -29,11 +29,10 @@ document.addEventListener("DOMContentLoaded", function() {
     // Fonction pour démarrer la fausse progression
     function startFakeProgress() {
         playing = true;
-        let currentTime = 0;
         let isAccelerated = true;
 
         intervalId = setInterval(function() {
-            currentTime = video.currentTime; // Obtenir le temps actuel de la vidéo
+            const currentTime = video.currentTime; // Obtenir le temps actuel de la vidéo
 
             if (currentTime <= accelerationTime && isAccelerated) {
                 // Calculer la progression accélérée pour atteindre 1/3 en 35 secondes
@@ -42,7 +41,7 @@ document.addEventListener("DOMContentLoaded", function() {
             } else {
                 // Passer à la progression normale après l'accélération
                 isAccelerated = false;
-                let remainingTime = realDuration - accelerationTime; // Temps restant après 35s
+                const remainingTime = realDuration - accelerationTime; // Temps restant après 35s
                 let progressFromThird = ((currentTime - accelerationTime) / remainingTime) * (100 - oneThirdProgress) + oneThirdProgress;
                 updateProgress(progressFromThird);
             }
@@ -73,12 +72,12 @@ document.addEventListener("DOMContentLoaded", function() {
             video.pause(); // Mettre la vidéo en pause
             clearInterval(intervalId); // Arrêter la progression
             playButton.style.display = 'block'; // Réafficher le bouton Play
-            playing = false; // Mettre l'état sur non joué
+            playing = false;
         } else {
             video.play(); // Reprendre la vidéo si elle était en pause
-            startFakeProgress(); // Reprendre la progression
             playButton.style.display = 'none'; // Cacher le bouton Play
-            playing = true; // Mettre l'état sur joué
+            startFakeProgress();
+            playing = true;
         }
     });
 });
