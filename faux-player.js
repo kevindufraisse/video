@@ -48,4 +48,44 @@
                         // Passer à la progression normale après l'accélération
                         isAccelerated = false;
                         const remainingTime = realDuration - accelerationTime; // Temps restant après 35s
-                        let progressFromThird = ((currentTime - accelerationTime) / remainingTime) * (100 - oneThirdP
+                        let progressFromThird = ((currentTime - accelerationTime) / remainingTime) * (100 - oneThirdProgress) + oneThirdProgress;
+                        updateProgress(progressFromThird);
+                    }
+
+                    // Si la vidéo est terminée, réinitialiser
+                    if (currentTime >= realDuration) {
+                        clearInterval(intervalId);
+                        resetPlayer();
+                    }
+                }, 100); // Mise à jour toutes les 100ms
+            }
+
+            // Mettre à jour la barre de progression
+            function updateProgress(percent) {
+                progressBar.style.width = percent + '%'; // Ajuster la largeur de la barre
+            }
+
+            // Réinitialiser le lecteur une fois la vidéo terminée ou arrêtée
+            function resetPlayer() {
+                playing = false;
+                playButton.style.display = 'block'; // Réafficher le bouton de lecture
+                updateProgress(0); // Réinitialiser la barre de progression
+            }
+
+            // Permettre de mettre la vidéo en pause en cliquant directement sur la vidéo
+            video.addEventListener('click', function() {
+                if (playing) {
+                    video.pause(); // Mettre la vidéo en pause
+                    clearInterval(intervalId); // Arrêter la progression
+                    playButton.style.display = 'block'; // Réafficher le bouton Play
+                    playing = false;
+                } else {
+                    video.play(); // Reprendre la vidéo si elle était en pause
+                    playButton.style.display = 'none'; // Cacher le bouton Play
+                    startFakeProgress();
+                    playing = true;
+                }
+            });
+        });
+    });
+})();
