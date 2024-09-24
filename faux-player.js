@@ -82,12 +82,4 @@ document.addEventListener("DOMContentLoaded", function() {
             playing = true; // Mettre l'état sur joué
         }
     });
-
-    // Empêcher le lecteur HTML5 d'être contrôlé directement
-    video.addEventListener('pause', function() {
-        if (playing) {
-            // Empêcher que l'utilisateur mette pause via le lecteur HTML5
-            video.play();
-        }
-    });
 });
