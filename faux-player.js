@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const videoSource = videoUrlInput.value.trim();
 
         if (videoSource) {
-            // Créer le lecteur avec l'URL fournie
+            // Create the player with the provided URL
             generatePlayer(videoSource);
         } else {
             alert('Veuillez fournir une URL de vidéo MP4 valide.');
@@ -15,10 +15,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function generatePlayer(videoSource) {
-        // Effacer le contenu existant dans le conteneur
+        // Clear existing content in the container
         videoContainer.innerHTML = '';
 
-        // Code HTML du lecteur
+        // HTML code of the player
         const playerHTML = `
             <div id="fauxPlayer" style="width: 600px; height: 350px; position: relative; background-color: #000;">
                 <video id="videoElement" preload="auto" style="width: 100%; height: 100%;">
@@ -36,11 +36,11 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
 
-        // Injecter le lecteur dans le conteneur
+        // Inject the player into the container
         videoContainer.innerHTML = playerHTML;
 
-        // Initialiser les contrôles du lecteur
-        initPlayer();
+        // Initialize the player after the DOM has been updated
+        requestAnimationFrame(initPlayer);
     }
 
     function initPlayer() {
@@ -49,89 +49,91 @@ document.addEventListener('DOMContentLoaded', function() {
         const progressBar = document.getElementById('progress');
 
         if (!video || !playButton || !progressBar) {
-            console.error('Les éléments du lecteur vidéo ne sont pas trouvés.');
+            console.error('Les éléments du lecteur vidéo ne sont pas trouvés. Retrying...');
+            // Retry initialization after a short delay
+            setTimeout(initPlayer, 50);
             return;
         }
 
         let playing = false;
-        const accelerationTime = 35; // Accélération sur les 35 premières secondes
-        let realDuration = 0; // Durée réelle de la vidéo
-        const oneThirdProgress = 33.33; // La barre atteindra 1/3 après l'accélération
+        const accelerationTime = 35; // Accelerate over the first 35 seconds
+        let realDuration = 0; // Real duration of the video
+        const oneThirdProgress = 33.33; // The bar will reach 1/3 after acceleration
         let intervalId;
 
-        // Désactiver les contrôles natifs de la vidéo
+        // Disable native video controls
         video.controls = false;
 
-        // Attendre que les métadonnées de la vidéo soient chargées pour obtenir la durée réelle
+        // Wait for the video metadata to load to get the real duration
         video.addEventListener('loadedmetadata', function() {
-            realDuration = video.duration; // Obtenir la durée réelle de la vidéo
+            realDuration = video.duration; // Get the real duration of the video
         });
 
-        // Démarrer la vidéo lorsque l'utilisateur clique sur le bouton Play
+        // Start the video when the user clicks the Play button
         playButton.addEventListener('click', function() {
             if (!playing) {
-                video.play(); // Jouer la vidéo
-                playButton.style.display = 'none'; // Cacher le bouton Play
+                video.play(); // Play the video
+                playButton.style.display = 'none'; // Hide the Play button
                 startFakeProgress();
             }
         });
 
-        // Fonction pour démarrer la progression personnalisée
+        // Function to start the custom progress
         function startFakeProgress() {
             playing = true;
             let isAccelerated = true;
 
             intervalId = setInterval(function() {
-                const currentTime = video.currentTime; // Obtenir le temps actuel de la vidéo
+                const currentTime = video.currentTime; // Get the current time of the video
 
                 if (currentTime <= accelerationTime && isAccelerated) {
-                    // Calculer la progression accélérée pour atteindre 1/3 en 35 secondes
+                    // Calculate accelerated progress to reach 1/3 in 35 seconds
                     let acceleratedProgress = (currentTime / accelerationTime) * oneThirdProgress;
                     updateProgress(acceleratedProgress);
                 } else {
-                    // Passer à la progression normale après l'accélération
+                    // Switch to normal progress after acceleration
                     isAccelerated = false;
-                    const remainingTime = realDuration - accelerationTime; // Temps restant après 35s
+                    const remainingTime = realDuration - accelerationTime; // Remaining time after 35s
                     let progressFromThird = ((currentTime - accelerationTime) / remainingTime) * (100 - oneThirdProgress) + oneThirdProgress;
                     updateProgress(progressFromThird);
                 }
 
-                // Si la vidéo est terminée, réinitialiser
+                // If the video is over, reset the player
                 if (currentTime >= realDuration) {
                     clearInterval(intervalId);
                     resetPlayer();
                 }
-            }, 100); // Mise à jour toutes les 100ms
+            }, 100); // Update every 100ms
         }
 
-        // Mettre à jour la barre de progression
+        // Update the progress bar
         function updateProgress(percent) {
-            progressBar.style.width = percent + '%'; // Ajuster la largeur de la barre
+            progressBar.style.width = percent + '%'; // Adjust the width of the bar
         }
 
-        // Réinitialiser le lecteur une fois la vidéo terminée ou arrêtée
+        // Reset the player once the video is over or stopped
         function resetPlayer() {
             playing = false;
-            playButton.style.display = 'block'; // Réafficher le bouton de lecture
-            updateProgress(0); // Réinitialiser la barre de progression
+            playButton.style.display = 'block'; // Show the Play button again
+            updateProgress(0); // Reset the progress bar
         }
 
-        // Permettre de mettre la vidéo en pause en cliquant directement sur la vidéo
+        // Allow pausing the video by clicking directly on it
         video.addEventListener('click', function() {
             if (playing) {
-                video.pause(); // Mettre la vidéo en pause
-                clearInterval(intervalId); // Arrêter la progression
-                playButton.style.display = 'block'; // Réafficher le bouton Play
+                video.pause(); // Pause the video
+                clearInterval(intervalId); // Stop the progress
+                playButton.style.display = 'block'; // Show the Play button again
                 playing = false;
             } else {
-                video.play(); // Reprendre la vidéo si elle était en pause
-                playButton.style.display = 'none'; // Cacher le bouton Play
+                video.play(); // Resume the video if it was paused
+                playButton.style.display = 'none'; // Hide the Play button
                 startFakeProgress();
                 playing = true;
             }
         });
 
-        // Gérer les erreurs lors du chargement de la vidéo
+        // Handle errors when loading the video
         video.addEventListener('error', function() {
             alert('Erreur lors du chargement de la vidéo. Veuillez vérifier l\'URL et réessayer.');
             resetPlayer();
