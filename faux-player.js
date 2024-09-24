@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const oneThirdProgress = 33.33; // La barre atteindra 1/3 après l'accélération
     let intervalId;
 
-    // Désactiver les contrôles du lecteur HTML5
+    // Enlever les contrôles natifs de la vidéo
     video.controls = false;
 
     // Attendre que les métadonnées de la vidéo soient chargées pour obtenir la vraie durée
