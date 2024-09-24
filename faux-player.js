@@ -1,0 +1,93 @@
+document.addEventListener("DOMContentLoaded", function() {
+    const video = document.getElementById('videoElement');
+    const playButton = document.getElementById('playButton');
+    const progressBar = document.getElementById('progress');
+
+    let playing = false;
+    const accelerationTime = 35; // Accélération sur les 35 premières secondes
+    let realDuration = 0; // Durée réelle de la vidéo
+    const oneThirdProgress = 33.33; // La barre atteindra 1/3 après l'accélération
+    let intervalId;
+
+    // Désactiver les contrôles du lecteur HTML5
+    video.controls = false;
+
+    // Attendre que les métadonnées de la vidéo soient chargées pour obtenir la vraie durée
+    video.addEventListener('loadedmetadata', function() {
+        realDuration = video.duration; // Obtenir la vraie durée de la vidéo
+    });
+
+    // Fonction pour démarrer la fausse progression
+    function startFakeProgress() {
+        playing = true;
+        playButton.style.display = 'none'; // Cacher le bouton Play
+
+        let currentTime = 0;
+        let isAccelerated = true;
+
+        intervalId = setInterval(function() {
+            currentTime = video.currentTime; // Obtenir le temps actuel de la vidéo
+
+            if (currentTime <= accelerationTime && isAccelerated) {
+                // Calculer la progression accélérée pour atteindre 1/3 en 35 secondes
+                let acceleratedProgress = (currentTime / accelerationTime) * oneThirdProgress;
+                updateProgress(acceleratedProgress);
+            } else {
+                // Passer à la progression normale après l'accélération
+                isAccelerated = false;
+                let remainingTime = realDuration - accelerationTime; // Temps restant après 35s
+                let progressFromThird = ((currentTime - accelerationTime) / remainingTime) * (100 - oneThirdProgress) + oneThirdProgress;
+                updateProgress(progressFromThird);
+            }
+
+            // Si la vidéo est terminée, réinitialiser
+            if (currentTime >= realDuration) {
+                clearInterval(intervalId);
+                resetPlayer();
+            }
+        }, 100); // Mise à jour toutes les 100ms
+    }
+
+    // Mettre à jour la barre de progression
+    function updateProgress(percent) {
+        progressBar.style.width = percent + '%'; // Ajuster la largeur de la barre
+    }
+
+    // Réinitialiser le player une fois la vidéo terminée ou arrêtée
+    function resetPlayer() {
+        playing = false;
+        playButton.style.display = 'block'; // Réafficher le bouton de lecture
+        updateProgress(0); // Réinitialiser la barre de progression
+    }
+
+    // Démarrer la vidéo et la fausse progression lorsque l'utilisateur clique sur "Play"
+    playButton.addEventListener('click', function() {
+        if (!playing) {
+            video.play(); // Démarrer la lecture de la vraie vidéo
+            startFakeProgress(); // Démarrer la fausse progression
+        }
+    });
+
+    // Permettre de mettre la vidéo en pause en cliquant directement sur la vidéo
+    video.addEventListener('click', function() {
+        if (playing) {
+            video.pause(); // Mettre la vidéo en pause
+            clearInterval(intervalId); // Arrêter la progression
+            playButton.style.display = 'block'; // Réafficher le bouton Play
+            playing = false; // Mettre l'état sur non joué
+        } else {
+            video.play(); // Reprendre la vidéo si elle était en pause
+            startFakeProgress(); // Reprendre la progression
+            playButton.style.display = 'none'; // Cacher le bouton Play
+            playing = true; // Mettre l'état sur joué
+        }
+    });
+
+    // Empêcher le lecteur HTML5 d'être contrôlé directement
+    video.addEventListener('pause', function() {
+        if (playing) {
+            // Empêcher que l'utilisateur mette pause via le lecteur HTML5
+            video.play();
+        }
+    });
+});
